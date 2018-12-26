@@ -1,0 +1,5 @@
+xcodebuild archive -project Inventory.xcodeproj -scheme "inventory" -configuration Debug -archivePath inventory.xcarchive
+
+
+
+yo rn-toolbox:assets --icon ./icon.png
