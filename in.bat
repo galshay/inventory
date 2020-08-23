@@ -1,0 +1,2 @@
+rem call yarn add react-native-vector-icons react-native-camera react-native-element react-native-gesture-handler
+call yarn add react-native-router-flux react-native-navbar react-native-screen react-native-sound simple-line-icons
