@@ -42,7 +42,7 @@ export default class LoginDemo extends Component {
       <View style={styles.container}>
         <View style={{flex: 0.2, paddingTop: 10}}>
           <Text style={styles.title}>מערכת ספירת מלאי</Text>
-          <Icon name="rocket" size={60} color="#900" />
+
         </View>
         <View style={styles.loginform}>
           <TextInput autoCorrect={false} placeholderTextColor='black'
