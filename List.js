@@ -21,9 +21,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon1 from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon2 from 'react-native-vector-icons/Entypo'
 import {Badge, ButtonGroup, List, ListItem, SearchBar} from 'react-native-elements';
-import {Router, Scene, Actions, ActionConst} from 'react-native-router-flux'
-import NavigationBar from 'react-native-navbar'
-
+import OneList from './OneList';
+import SelectButton from './SButton';
 import {RNCamera, FaceDetector} from 'react-native-camera';
 import Sound from 'react-native-sound'
 
@@ -34,57 +33,15 @@ import './Group.js'
 import ListExcept from './Report.js'
 var firstCamera=0;
 const {width, height}=Dimensions.get('window');
-
+const emulator=true
 const equalWidth=(width/4)
-export class Onelist extends Component {
-
-  render() {
-
-    return <TouchableOpacity onPress={this.props.onPress}
-      style={this.props.class}>
-      <Text style={this.props.textclass}>
-        {this.props.text}</Text>
-    </TouchableOpacity>
-
-  }
-}
-class SelectButton extends Component {
-  constructor(props) {
-    super(props);
-    this.state={selectIndex: -1}
-  }
-  render() {
 
 
-
-    return (
-      <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start'}}>
-        {global.types.map((data, index) => {
-          return (
-            <Onelist
-              text={data.productName} onPress={() => {
-                //alert(this.props.myfunc);
-                this.setState({selectIndex: index})
-                this.props.myfunc(data.productTypeId, data.productName);
-              }} key={index}
-              textclass={this.state.selectIndex==index? styles.textClose:styles.textClose1}
-              class={data.isRequired=="1"? styles.buttonClose:styles.buttonClose1} />
-          )
-        })}
-      </View>
-    )
-
-  }
-
-}
 
 export class Items extends React.Component {
-
   constructor(props) {
     super(props);
-    if(props.item!=undefined) {
-      this.getdata(props.item.posId);
-    }
+    //this.getData();
     this.state={
       dataall: [],
       start: global.start,
@@ -98,13 +55,46 @@ export class Items extends React.Component {
       est: [],
       diff: [],
       modalVisible: false,
+      barcodeDemo:''
     }
 
 
   }
+  componentDidMount() {
+    this.props.navigation.setOptions({
+      headerTitle: 'תחנה',
+      headerStyle: {
+        backgroundColor: '#f4511e',
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        color: '#000000',
+        alignSelf: 'center',
+        fontWeight: 'bold',
+      },
+      headerRight: () => (
+        <Button
+          title={this.addOrDelete()}
+          onPress={() => {
+            this.endInventor();
+          }}
+        />
+      ),
+      headerLeft: () => (
+        <Button
+          title="חזרה"
+          onPress={() => {
+            this.props.navigation.navigate('list');
 
-  deleteitem(item) {
-    fetch(global.host+"item?tranNumber="+item.tranNumber+"&status=3&userCode="+global.usercode,
+          }}
+        />
+      ),
+    })
+  }
+
+  item=() => this.props.route.params.item
+  deleteItem() {
+    fetch(global.host+"item?tranNumber="+this.item().tranNumber+"&status=3&userCode="+global.usercode,
       {
         method: "DELETE",
       })
@@ -116,21 +106,21 @@ export class Items extends React.Component {
           //return false;
         }
         else {
-          this.getdata(this.props.item.posId);
+          this.getData();
           //Actions.refresh();
 
         }
       })
   }
-  donothing(item) {
+  doNothing(item) {
     //alert('aaaa');
   }
-  deletePress(item) {
+  deletePress() {
     //alert(JSON.stringify(item));
     var cm="האם בטוח שאתה רוצה למחוק?";
     var ct="אישור";
-    Alert.alert(ct, cm, [{text: 'yes', onPress: () => this.deleteitem(item)},
-    {text: 'no', onPress: () => this.donothing()}])
+    Alert.alert(ct, cm, [{text: 'yes', onPress: () => this.deleteItem()},
+    {text: 'no', onPress: () => this.doNothing()}])
     //var a=confirm("Are you sure you want to delete?");
 
   }
@@ -145,7 +135,7 @@ export class Items extends React.Component {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          posId: this.props.item.posId,
+          posId: this.item().posId,
           periodId: global.period.periodId,
           action: '1',
           userCode: global.usercode,
@@ -167,12 +157,12 @@ export class Items extends React.Component {
       })
     return true;
   }
-  askifSure=() => {
+  askIfSure=() => {
     var ct="אישור";
     var cm="האם את בטוח שאתה רוצה לסיים";
 
     Alert.alert(ct, cm, [{text: 'yes', onPress: () => this.closeInventerToPos()},
-    {text: 'no', onPress: () => this.donothing()}])
+    {text: 'no', onPress: () => this.doNothing()}])
 
     return true;
   }
@@ -186,7 +176,7 @@ export class Items extends React.Component {
         },
 
         body: JSON.stringify({
-          posId: this.props.item.posId,
+          posId: this.item().posId,
           periodId: global.period.periodId,
           action: '2',
           userCode: global.usercode,
@@ -264,7 +254,7 @@ export class Items extends React.Component {
     }
 
 
-    if(this.askifSure()) {
+    if(this.askIfSure()) {
       global.start=false;
       this.setState({start: false, finish: false})
       this.props.callback;
@@ -287,7 +277,7 @@ export class Items extends React.Component {
 
     }
   }
-  addordelete=() => {
+  addOrDelete=() => {
     if(global.pos.posInvStatus===undefined&&!this.state.start) {
       return "התחלה";
     }
@@ -307,7 +297,7 @@ export class Items extends React.Component {
   }
   postitle() {
     try {
-      return " רשימת ציוד "+this.props.item.posId;
+      return " רשימת ציוד "+this.item().posId;
     }
     catch(ex) {
       return " רשימת ציוד "
@@ -328,33 +318,59 @@ export class Items extends React.Component {
     }
   }
   additem=() => {
-    //Actions.additem_tabs({item:this.props.item});
-    Actions.edititems({item: this.props.item});
+    //Actions.additem_tabs({item:this.item()});
+    Actions.edititems({item: this.item()});
 
 
   }
   renderCamera=() => {
     if(this.state.opencamera) {
-      return (<RNCamera
+      return (
+      emulator ? <View>
+      <TouchableOpacity onPress={() => {
+        alert(this.state.barcodeDemo)
+        this.SaveParam(this.state.barcodeDemo);
+        //alert("refresh")
+      }}>
+        <Text>Demo</Text>
+        </TouchableOpacity>
+      
+      
+      
+      
+      <TextInput autoCorrect={false} placeholderTextColor='black'
+            keyboardType='numeric'
+            maxLength={9}
+            style={{marginBottom: 20, borderColor: 'gray', borderWidth: 1, textAlign: 'right', fontSize: 20}}
+            placeholder="barcode"
+            value={this.state.barcodeDemo}
+            onChangeText={barcode => this.setState({barcodeDemo:barcode})}
+
+          />
+          
+          </View>
+          :
+      <RNCamera
         ref="cam"
         captureAudio={false}
         style={styles.cameraTypeOpen}
         onBarCodeRead={this._onBarcodScanner}
         type={this.state.cameraType}>
       </RNCamera>
+      
       )
     }
     return <View></View>
   }
 
 
-  getdata(id) {
-    var url=global.host+"itemsList?userCode="+global.usercode+"&posId="+id+"&periodId="+global.period.periodId;
+  getData() {
+    var url=global.host+"itemsList?userCode="+global.usercode+"&posId="+this.item().posId+"&periodId="+global.period.periodId;
     fetch(url)
       .then((response) => response.json())
       .then((responseJson) => {
         if(responseJson.errorId!=undefined&&responseJson.errorId!="0") {
-          if(this.props.item.posInvStatus=="1")
+          if(item().posInvStatus=="1")
             this.setState({start: true, dataall: []})
           else
             this.setState({dataall: []})
@@ -362,7 +378,7 @@ export class Items extends React.Component {
         else {
           if(responseJson.tranList==undefined||responseJson.tranList.length==0) {
             result=[];
-            if(this.props.item.posInvStatus=="1")
+            if(item().posInvStatus=="1")
               this.setState({start: true, dataall: result, est: responseJson.estimated})
             else
               this.setState({dataall: result, est: responseJson.estimated})
@@ -371,7 +387,7 @@ export class Items extends React.Component {
           try {
             let result=responseJson.tranList.gt("productTypeName");
             //alert(JSON.)
-            if(this.props.item.posInvStatus=="1")
+            if(item().posInvStatus=="1")
               this.setState({start: true, dataall: result, est: responseJson.estimated})
             else
               this.setState({dataall: result, est: responseJson.estimated})
@@ -398,11 +414,11 @@ export class Items extends React.Component {
     }
 
   }
-  async changecamera(status) {
+  async changeCamera(status) {
     await this.setState({opencamera: status});
 
   }
-  async savepost(barcode) {
+  async savePost(barcode) {
     await fetch(global.host+"item",
       {
         method: "POST",
@@ -411,7 +427,7 @@ export class Items extends React.Component {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          posId: this.props.item.posId,
+          posId: this.item().posId,
           periodId: global.period.periodId,
           tranTypeId: '1',
           productTypeId: this.state.typeId,
@@ -424,14 +440,14 @@ export class Items extends React.Component {
         if(responseJson.errorId!=undefined&&responseJson.errorId!='0') {
           Alert.alert("שגיאה בשמירת ברקוד", responseJson.errorDescription)
           firstCamera=0;
-          this.changecamera(false);
+          this.changeCamera(false);
 
           return false;
         }
         else {
           //firstCamera=0;
-          this.changecamera(false);
-          this.getdata(this.props.item.posId);
+          this.changeCamera(false);
+          this.getData();
 
 
         }
@@ -450,13 +466,13 @@ export class Items extends React.Component {
         //alert(JSON.stringify(this.state.dataall[i].data[j]));
         if("TOTO-"+this.state.dataall[i].data[j].barcode==bc) {
           Alert.alert("מספר ברקוד כבר נמצא יש למחוק  קודם לפני רישום חדש");
-          this.changecamera(false);
+          this.changeCamera(false);
 
           firstCamera=0;
           return;
         }
         if(this.state.dataall[i].data[j]==2) {
-          this.changecamera(false);
+          this.changeCamera(false);
           Alert.alert("יש ברקוד כפול נא למחוק לפני שמירה");
           firstCamera=0;
           return;
@@ -473,7 +489,7 @@ export class Items extends React.Component {
     catch(ex) {
 
     }
-    this.savepost(bc);
+    this.savePost(bc);
 
 
   }
@@ -506,151 +522,126 @@ export class Items extends React.Component {
 
     const sound=new Sound(url, Sound.MAIN_BUNDLE, error => callback(error, sound));
   }
-  debugsave=() => {
-    this.SaveParam(this.state.barcodeNumber);
-  }
+
   onLayout(e) {
     console.log("Layout change");
     //this.render();
   }
+  renderButtonFlat=(item, width, h) => {
+    try {
+      if(item.posInvStatus=="1"||this.state.start) {
+        return (
+          <View style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'flex-start'
+          }}>
+            <SelectButton key={item.posId} onPress={this.openCameraFunc} types={this.state.types} />
+
+          </View>)
+      }
+    }
+    catch(ex) {
+      alert("list 472"+ex.message);
+    }
+    return <View></View>
+
+  }
+  renderReport=() => {
+
+    if(this.state.showreport) {
+      return <ListExcept data={this.state.diff} save={() => {
+        global.start=false;
+        this.setState({start: false, finish: false});
+        //this.props.callback;
+        //Actions.list();
+        this.closeInventerToPos();
+        this.setState({showreport: false});
+
+      }}
+        cancel={() => {
+          this.setState({showreport: false});
+
+        }}
+        myvisible={true} />;
+
+    }
+    return <View></View>;
+  }
+  openCameraFunc=(id, name) => {
+    firstCamera=0;
+    this.setState({opencamera: true, typeId: id, barcodeNumber: '', typeName: name})
+  }
+  tooltip=() => {
+    if(this.state.modalVisible) {
+      var b=[];
+      for(i=0;i<global.types.length;i++) {
+        var t=this.getEstiCount(global.types[i].productTypeId);
+        //var co=this.getItemCount(global.types[i].productTypeId);
+        //{key:j,e:es,c:it,n:global.types[j].productName}
+
+        b.push({key: i, n: global.types[i].productName, e: t, c: 0});
+      }
+      //alert(JSON.stringify(b))
+      return <ListExcept readonly={true} data={b} cancel={() => {
+        this.setState({modalVisible: false})
+      }} />
+    }
+    else
+      return <View></View>
+
+  }
+
   render() {
+
+    const item=this.props.route.params.item
+    console.log(item);
+
+
+
     var r=Math.ceil(width/60)-1;
     r=7;
     var c=Math.ceil(global.types.length/r)
     var h=(c)*30;
-
-    getstylepos=(status) => {
-      return 'lightgreen';
-    }
-    getdeleteicon=(item) => {
-      if(this.props.item.posInvStatus=="1")
-        return <Icon1 name="delete" color="red" size={32}
-          onPress={() => {this.deletePress(item)}} />
-
-      return {};
-    }
-    closeCameraButton=() => {
-      //this.SaveParam();
-      this.setState({opencamera: false})
-    }
-    tooltip=() => {
-      if(this.state.modalVisible) {
-        var b=[];
-
-        for(i=0;i<global.types.length;i++) {
-          var t=this.getEstiCount(global.types[i].productTypeId);
-          //var co=this.getItemCount(global.types[i].productTypeId);
-          //{key:j,e:es,c:it,n:global.types[j].productName}
-
-          b.push({key: i, n: global.types[i].productName, e: t, c: 0});
-        }
-        //alert(JSON.stringify(b))
-        return <ListExcept readonly={true} data={b} cancel={() => {
-          this.setState({modalVisible: false})
-        }} />
-      }
-      else
-        return <View></View>
-
-    }
-    renderReport=() => {
-
-      if(this.state.showreport) {
-        return <ListExcept data={this.state.diff} save={() => {
-          global.start=false;
-          this.setState({start: false, finish: false})
-          this.props.callback;
-          Actions.list();
-          this.closeInventerToPos();
-          this.setState({showreport: false});
-
-        }}
-          cancel={() => {
-            this.setState({showreport: false});
-
-          }}
-          myvisible={true} />;
-
-      }
-      return <View></View>;
-    }
-
-    showfunc=() => {
-      return "gsggsgs";
-    }
-    opencamerafunc=(id, name) => {
-      firstCamera=0;
-      this.setState({opencamera: true, typeId: id, barcodeNumber: '', typeName: name})
-    }
-    renderButtonFlat=(width, h) => {
-      try {
-        if(this.props.item.posInvStatus=="1"||this.state.start) {
-          return (
-            <View style={{
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              alignItems: 'flex-start'
-            }}>
-              <SelectButton myfunc={opencamerafunc} types={this.state.types} />
-
-            </View>)
-        }
-      }
-      catch(ex) {
-        alert("list 472"+ex.message);
-      }
-      return <View></View>
-
-    }
-
     return (
 
       <View style={styles.container}
         onLayout={this.onLayout.bind(this)}>
-        <NavigationBar
-          title={{title: this.postitle(), tintColor: 'black', }}
-          leftButton={{title: "חזרה", handler: () => {Actions.list()}}}
-          rightButton={{title: this.addordelete(), handler: () => this.endInventor()}}
-          style={{backgroundColor: "white", }}
-          statusBar={{tintColor: "white", }}
-        />
-        {renderReport()}
+        {this.renderReport()}
         <View style={{
           flexDirection: 'row',
           paddingTop: 0,
-          borderWidth: 1,
+          borderWidth: 0,
+          backgroundColor: '#808080',
           justifyContent: 'flex-end',
 
         }}>
 
-          <Text style={{paddingLeft: 4, flex: 0.4, paddingTop: 5}}>
+          <Text style={{paddingTop: 10}}>
             ציוד מוערך
             &nbsp;
-        {this.props.item.productCounts}
-
-          </Text>
-
-          <Text style={{paddingLeft: 4, flex: 0.4, paddingTop: 5}}>
+        {item.productCounts}
+        &nbsp;
+          
             ציוד בפועל
             &nbsp;
         {this.itemslen()}
 
           </Text>
           <Icon.Button onPress={() => {
-            this.getdata(this.props.item.posId);
-            Actions.items({item: this.props.item, refresh: true});
+            this.getData();
             //alert("refresh")
-          }} size={12} name="refresh" backgroundColor="transparent" color="blue">
+          }} size={24} name="refresh" backgroundColor="transparent" color="blue">
           </Icon.Button>
           <Icon2.Button onPress={() => {
             this.setState({modalVisible: true})
-          }} size={12} name="help-with-circle" backgroundColor="transparent" color="blue">
+          }} size={24} name="help-with-circle" backgroundColor="transparent" color="blue">
           </Icon2.Button>
         </View>
-        {tooltip()}
+        {this.tooltip()}
 
 
-        {renderButtonFlat(width, h)}
+        {this.renderButtonFlat(item, width, h)}
 
 
 
@@ -676,8 +667,8 @@ export class Items extends React.Component {
               flexDirection: 'row',
               flex: 1, justifyContent: 'flex-end'
             }}>
-              <Icon1 name="delete" color={this.props.item.posInvStatus=="1"? "red":"gray"}
-                size={32} onPress={() => {this.props.item.posInvStatus=="1"? this.deletePress(item):this.donothing(item)}} />
+              <Icon1 name="delete" color={item.posInvStatus=="1"? "red":"gray"}
+                size={32} onPress={() => {item.posInvStatus=="1"? this.deletePress(item):this.doNothing(item)}} />
               <Text style={item.barcodeStatusId=="1"?
                 styles.barcodeSingle:styles.barcodeDouble}>
                 {item.barcode}</Text>

@@ -3,13 +3,14 @@ import {
   StyleSheet,
   Text,
   FlatList,
+  Button,
   View,
   Alert,
   ActivityIndicator,
 } from 'react-native';
 import {ListItem, SearchBar, ButtonGroup} from 'react-native-elements';
-import {Actions, ActionConst} from 'react-native-router-flux'
-import NavigationBar from 'react-native-navbar'
+
+
 
 
 /*import { List , ListItem } from 'react-native-elements'*/
@@ -52,13 +53,42 @@ export class ListStation extends React.Component {
   }
 
   async componentDidMount() {
+    console.log('componentDidMount')
+    this.props.navigation.setOptions({
+      headerTitle: 'תחנות',
+      headerStyle: {
+        backgroundColor: '#f4511e',
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        color: '#000000',
+        alignSelf: 'center',
+        fontWeight: 'bold',
+      },
+      headerRight: () => (
+        <Button
+          title="אודות"
+          onPress={() => {
+            this.props.navigation.navigate('about');
+          }}
+        />
+      ),
+      headerLeft: () => (
+        <Button
+          title="רענון"
+          onPress={() => {
+            this.getData();
+          }}
+        />
+      ),
+    })
     await this.getData();
   }
   clickme(item) {
     global.posid=item.posId;
     global.pos=item;
-    Actions.items({item: item, callback: this.getData});
-    //Actions.refresh();
+    this.props.navigation.navigate('items', {item: item});
+
   }
   FlatListHeader=() => {
     return (<View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-end'}}>
@@ -116,6 +146,7 @@ export class ListStation extends React.Component {
     let randomIndex=index;
     //this.flatListRef.scrollToIndex({animated: true, index: randomIndex});
   }
+
   render() {
     const buttons=['הכל', 'סיום', 'התחיל', 'לא התחיל']
     const {selectedIndex}=this.state
@@ -150,13 +181,7 @@ export class ListStation extends React.Component {
 
       <View>
 
-        <NavigationBar
-          title={{title: 'תחנות', tintColor: 'black', }}
-          leftButton={{title: 'אודות', handler: () => Actions.about()}}
-          rightButton={{title: 'רענון', handler: () => this.getData()}}
-          style={{backgroundColor: "white", }}
-          statusBar={{tintColor: "white", }}
-        />
+
         <View style={styles.container1}>
           <ButtonGroup
             onPress={this.updateIndex}

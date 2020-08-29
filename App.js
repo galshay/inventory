@@ -4,36 +4,25 @@
  * @flow
  */
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
+import * as Sentry from "@sentry/react-native";
 import {
   AppRegistry,
   StyleSheet,
+  Button,
   Text,
   View,
   NavItems,
   NetInfo
 } from 'react-native';
-import {
-  Scene,
-  Router,
-  Actions,
-  Reducer,
-  ActionConst,
-  Drawer,
-  Stack,
-  Lightbox
-} from "react-native-router-flux";
-import LoginDemo from  './Login.js'
-import ListStation from './ListStation.js'
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+
+import LoginDemo from './Login.js'
+import List from './ListStation.js'
 import About from './About.js'
 import Items from './List'
-const reducerCreate = params => {
-  const defaultReducer = new Reducer(params);
-  return (state, action) => {
-    console.log("ACTION:", action);
-    return defaultReducer(state, action);
-  };
-};
+
 global.pos_notstart=0;
 global.pos_finish=0;
 global.pos_process=0;
@@ -46,34 +35,45 @@ global.periodid=1;
 global.period=[];
 global.posid=0;
 global.pos=[];
-global.hosts={prod:"https://service.winner.co.il/rest/TotoDMZServices/equipment/",
-test:"https://affiliates-test.winner.co.il/rest/TotoDMZServices/equipment/"}
+global.hosts={
+  prod: "https://service.winner.co.il/rest/TotoDMZServices/equipment/",
+  test: "https://affiliates-test.winner.co.il/rest/TotoDMZServices/equipment/"
+}
 global.types=[];
 global.host="https://service.winner.co.il/rest/TotoDMZServices/equipment/";
 
 
 
-
+Stack=createStackNavigator();
 export default class App extends Component {
+
+
   render() {
+    Sentry.init({
+      dsn: "https://457643e9febd4af389afc3abe32eaf3e@o440957.ingest.sentry.io/5410672",
+    });
+
     return (
-    <View style={{ flex: 1 }}>
-    <Router createReducer={reducerCreate}>
-   
-      <Scene key="root" showLable="false" hideNavBar="true"> 
-      <Scene key="login" component={LoginDemo} />
-      <Scene  key="list" component={ListStation}/>
-      <Scene key="about" component={About}/>
-      <Scene key="items" component={Items}/>
-     
-     </Scene>
-    </Router>
-   </View>
-   );
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="Login" component={LoginDemo} options={{headerShown: false}} />
+          <Stack.Screen name="list" component={List}
+
+          />
+          <Stack.Screen name="items" component={Items} />
+          <Stack.Screen name="about" component={About}
+          />
+
+
+
+        </Stack.Navigator>
+      </NavigationContainer>
+
+    );
   }
 }
 
-const styles = StyleSheet.create({
+const styles=StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',

@@ -9,8 +9,8 @@ import {
   View,
   Switch,
 } from 'react-native';
-import {Router, Scene, Actions, ActionConst} from 'react-native-router-flux'
-import Icon2 from 'react-native-vector-icons/SimpleLineIcons';
+
+
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Cookie from '@react-native-community/cookies';
 export default class LoginDemo extends Component {
@@ -42,7 +42,7 @@ export default class LoginDemo extends Component {
       <View style={styles.container}>
         <View style={{flex: 0.2, paddingTop: 10}}>
           <Text style={styles.title}>מערכת ספירת מלאי</Text>
-          <Icon name="rocket" size={30} color="#900" />
+          <Icon name="rocket" size={60} color="#900" />
         </View>
         <View style={styles.loginform}>
           <TextInput autoCorrect={false} placeholderTextColor='black'
@@ -95,7 +95,7 @@ export default class LoginDemo extends Component {
 
   }
   getPeriod=() => {
-    //alert(global.host+"period");
+    console.log(global.host+"period");
     fetch(global.host+"period")
 
       .then((response) => response.json())
@@ -110,14 +110,9 @@ export default class LoginDemo extends Component {
             return;
           }
           global.period=responseJson;
+          console.log(responseJson);
           console.log('navigate')
-          this.props.navigation.navigate('list', {
-            usercode: this.state.userCode,
-            host: host,
-            firstName: responseJson.firstName,
-            lastName: responseJson.lastName,
-            period: responseJson
-          })
+          this.props.navigation.navigate('list')
 
 
         }
@@ -131,8 +126,8 @@ export default class LoginDemo extends Component {
       });
   }
 
-  gettypes=() => {
-    fetch(global.host+"type")
+  getTypes=async () => {
+    await fetch(global.host+"type")
       .then((response) => response.json())
       .then((responseJson) => {
         responseJson.results.sort(function(a, b) {
@@ -173,6 +168,7 @@ export default class LoginDemo extends Component {
       host=global.hosts.test;
     global.prod=this.state.prod;
     global.host=host;
+
     fetch(host+"userData?userNationalId="+this.state.tzNumber)
 
       .then((response) => response.json())
@@ -188,7 +184,7 @@ export default class LoginDemo extends Component {
         global.usercode=userCode;
         global.userjson=responseJson;
         //alert(responseJson.firstName)
-        this.gettypes();
+        this.getTypes();
         this.getPeriod();
 
       })
